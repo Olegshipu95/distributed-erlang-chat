@@ -11,3 +11,15 @@
 
 %% API
 -export([]).
+
+init(File) ->
+  {ok, Fd} = file:open(File, write),
+  Fd.
+terminate(Fd) ->
+  file:close(Fd).
+handle_event({Action, Id, Event}, Fd) ->
+  {Megasec, Sec, Microsec} = now(),
+  io:format(Fd, "~w,~w,~w,~w,~w,~p~n", [Megasec, Sec, Microsec, Action, Id, Event]),
+  Fd;
+handle_event(_, Fd) ->
+  Fd.

@@ -16,5 +16,5 @@
   {ok, State :: term()}.
 -callback terminate(Data :: list()) ->
   {ok, State :: term()} | {error, State :: term()}.
--callback handle_event(Args::term()) ->
-  Answer::term().
+-callback handle_event(Args :: term()) ->
+  Answer :: term().

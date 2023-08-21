@@ -49,12 +49,10 @@ init([]) ->
     intensity => MaxRestarts,
     period => MaxSecondsBetweenRestarts},
 
-  AChild = #{id => 'AName',
-    start => {'AModule', start_link, []},
-    restart => permanent,
-    shutdown => 2000,
-    type => worker,
-    modules => ['AModule']},
+  AChild = #{id => client,
+    start => {client_generator, init, []},
+    restart => never,
+    type => worker},
 
   {ok, {SupFlags, [AChild]}}.
 

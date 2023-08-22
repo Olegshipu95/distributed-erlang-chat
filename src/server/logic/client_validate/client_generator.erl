@@ -29,6 +29,11 @@ terminate([{Pid, Module} | Rest]) ->
   Module:terminate(),
   terminate(Rest).
 
+restart_child(Pid, WorkingThreads) ->
+  {value, {Pid, {Module, Func, Args}}} = lists:keysearch(Pid, 1, WorkingThreads),
+  {ok, NewPid} = apply(Module,Func,Args),
+  [{NewPid, {Module,Func,Args}}|lists:keydelete(Pid,1,WorkingThreads)].
+
 loop(WorkingThreads) ->
   receive
     stop -> terminate(WorkingThreads)

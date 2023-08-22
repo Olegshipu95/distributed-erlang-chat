@@ -9,6 +9,11 @@
 -module(client_generator).
 -author("olegs").
 
+-record(threadInitParams,
+  {module,
+  function,
+  args = []}).
+
 %% API
 -export([]).
 %%todo Error processing
@@ -17,12 +22,12 @@ init({Id, Role}, Threads) ->
   loop(WorkingThreads).
 
 generator(_, []) -> _;
-generator(WorkingThreads, [{Module, Args} | Rest]) ->
-  Pid = spawn_link(Module, Module:start(), Args),
-  [{Pid, Module} | generator(WorkingThreads, Rest)];
-generator(WorkingThreads, [Module | Rest]) ->
-  Pid = spawn_link(Module, Module:start(), []),
-  [{Pid, Module} | generator(WorkingThreads, Rest)].
+generator(WorkingThreads, #threadInitParams(module=Module, function=Func, args=Args) = Params) ->
+  Pid = spawn_link(Module, Func, Args),
+  [{Pid, Module} | generator(WorkingThreads, Params)];
+generator(WorkingThreads, #threadInitParams(module=Module, function=Func, args=Args) = Params) ->
+  Pid = spawn_link(Module, Func, Args),
+  [{Pid, Module} | generator(WorkingThreads, Params)].
 
 terminate([]) -> ok;
 terminate([{Pid, Module} | Rest]) ->
@@ -31,8 +36,8 @@ terminate([{Pid, Module} | Rest]) ->
 
 restart_child(Pid, WorkingThreads) ->
   {value, {Pid, {Module, Func, Args}}} = lists:keysearch(Pid, 1, WorkingThreads),
-  {ok, NewPid} = apply(Module,Func,Args),
-  [{NewPid, {Module,Func,Args}}|lists:keydelete(Pid,1,WorkingThreads)].
+  {ok, NewPid} = apply(Module, Func, Args),
+  [{NewPid, {Module, Func, Args}} | lists:keydelete(Pid, 1, WorkingThreads)].
 
 loop(WorkingThreads) ->
   receive

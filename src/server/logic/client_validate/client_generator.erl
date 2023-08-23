@@ -32,9 +32,11 @@ terminate([{_, #threadInitParams = Params} | Rest]) ->
   terminate(Rest).
 
 restart_child(Pid, WorkingThreads) ->
-  {Pid, {Module, Func, Args}} = lists:keyfind(Pid, 1, WorkingThreads),
-  {ok, NewPid} = spawn_link(Module, Func, Args),
-  [{NewPid, {Module, Func, Args}} | lists:keydelete(Pid, 1, WorkingThreads)].
+  case lists:keyfind(Pid, 1, WorkingThreads) of
+    {Pid, {Module, Func, Args}} ->
+      {ok, NewPid} = spawn_link(Module, Func, Args),
+      [{NewPid, {Module, Func, Args}} | lists:keydelete(Pid, 1, WorkingThreads)]
+  end.
 
 loop(WorkingThreads) ->
   receive

@@ -10,7 +10,7 @@
 -author("olegs").
 
 -record(threadInitParams,
-  {module,
+{module,
   function,
   args = []}).
 
@@ -22,16 +22,13 @@ init({Id, Role}, Threads) ->
   loop(WorkingThreads).
 
 generator(_, []) -> _;
-generator(WorkingThreads, #threadInitParams(module=Module, function=Func, args=Args) = Params) ->
-  Pid = spawn_link(Module, Func, Args),
-  [{Pid, Module} | generator(WorkingThreads, Params)];
-generator(WorkingThreads, #threadInitParams(module=Module, function=Func, args=Args) = Params) ->
-  Pid = spawn_link(Module, Func, Args),
-  [{Pid, Module} | generator(WorkingThreads, Params)].
+generator(WorkingThreads, [#threadInitParams = Params | Rest]) ->
+  Pid = spawn_link(Params#threadInitParams.module, Params#threadInitParams.function, Params#threadInitParams.args),
+  [{Pid, Params} | generator(WorkingThreads, Rest)].
 
 terminate([]) -> ok;
-terminate([{Pid, Module} | Rest]) ->
-  Module:terminate(),
+terminate([{_, #threadInitParams = Params} | Rest]) ->
+  Params#threadInitParams.module:terminate(),
   terminate(Rest).
 
 restart_child(Pid, WorkingThreads) ->

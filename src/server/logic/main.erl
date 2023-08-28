@@ -49,12 +49,12 @@ init([]) ->
     intensity => MaxRestarts,
     period => MaxSecondsBetweenRestarts},
 
-  AChild = #{id => 'AName',
-    start => {'AModule', start_link, []},
+  AChild = #{id => protocol_adapter,
+    start => {protocol_adapter, start_link, []},
     restart => permanent,
     shutdown => 2000,
     type => worker,
-    modules => ['AModule']},
+    modules => [protocol_adapter]},
 
   {ok, {SupFlags, [AChild]}}.
 

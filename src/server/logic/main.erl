@@ -6,7 +6,7 @@
 %%% @end
 %%% Created : 17. авг. 2023 23:39
 %%%-------------------------------------------------------------------
--module(distributed_chat).
+-module(main).
 -author("olegs").
 
 -behaviour(supervisor).

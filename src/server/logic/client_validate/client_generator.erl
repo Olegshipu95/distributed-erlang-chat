@@ -4,41 +4,58 @@
 %%% @doc
 %%%
 %%% @end
-%%% Created : 21. авг. 2023 19:18
+%%% Created : 21. авг. 2023 19:07
 %%%-------------------------------------------------------------------
 -module(client_generator).
 -author("olegs").
 
--record(threadInitParams,
-{module,
-  function,
-  args = []}).
+-behaviour(supervisor).
 
 %% API
--export([]).
-%%todo Error processing
-init({Id, Role}, Threads) ->
-  WorkingThreads = generator([], Threads),
-  loop(WorkingThreads).
+-export([start_link/0]).
 
-generator(_, []) -> _;
-generator(WorkingThreads, [#threadInitParams = Params | Rest]) ->
-  Pid = spawn_link(Params#threadInitParams.module, Params#threadInitParams.function, Params#threadInitParams.args),
-  [{Pid, Params} | generator(WorkingThreads, Rest)].
+%% Supervisor callbacks
+-export([init/1]).
 
-terminate([]) -> ok;
-terminate([{_, #threadInitParams = Params} | Rest]) ->
-  Params#threadInitParams.module:terminate(),
-  terminate(Rest).
+-define(SERVER, ?MODULE).
 
-restart_child(Pid, WorkingThreads) ->
-  case lists:keyfind(Pid, 1, WorkingThreads) of
-    {Pid, {Module, Func, Args}} ->
-      {ok, NewPid} = spawn_link(Module, Func, Args),
-      [{NewPid, {Module, Func, Args}} | lists:keydelete(Pid, 1, WorkingThreads)]
-  end.
+%%%===================================================================
+%%% API functions
+%%%===================================================================
 
-loop(WorkingThreads) ->
-  receive
-    stop -> terminate(WorkingThreads)
-  end.
+%% @doc Starts the supervisor
+-spec(start_link() -> {ok, Pid :: pid()} | ignore | {error, Reason :: term()}).
+start_link() ->
+  supervisor:start_link({local, ?SERVER}, ?MODULE, []).
+
+%%%===================================================================
+%%% Supervisor callbacks
+%%%===================================================================
+
+%% @private
+%% @doc Whenever a supervisor is started using supervisor:start_link/[2,3],
+%% this function is called by the new process to find out about
+%% restart strategy, maximum restart frequency and child
+%% specifications.
+-spec(init(Args :: term()) ->
+  {ok, {SupFlags :: {RestartStrategy :: supervisor:strategy(),
+    MaxR :: non_neg_integer(), MaxT :: non_neg_integer()},
+    [ChildSpec :: supervisor:child_spec()]}}
+  | ignore | {error, Reason :: term()}).
+init([]) ->
+  MaxRestarts = 1000,
+  MaxSecondsBetweenRestarts = 3600,
+  SupFlags = #{strategy => simple_one_for_one,
+    intensity => MaxRestarts,
+    period => MaxSecondsBetweenRestarts},
+
+  AChild = #{id => client,
+    start => {client_generator, init, []},
+    restart => never,
+    type => worker},
+
+  {ok, {SupFlags, [AChild]}}.
+
+%%%===================================================================
+%%% Internal functions
+%%%===================================================================

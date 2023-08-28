@@ -4,9 +4,9 @@
 %%% @doc
 %%%
 %%% @end
-%%% Created : 17. авг. 2023 23:58
+%%% Created : 28. авг. 2023 12:38
 %%%-------------------------------------------------------------------
--module(chat_supervisor).
+-module(protocol_adapter).
 -author("olegs").
 
 %% API

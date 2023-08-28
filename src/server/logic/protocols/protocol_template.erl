@@ -6,7 +6,7 @@
 %%% @end
 %%% Created : 17. авг. 2023 23:58
 %%%-------------------------------------------------------------------
--module(server_tcp).
+-module(protocol_template).
 -author("olegs").
 
 %% API

@@ -12,20 +12,21 @@
 -behavior(protocol_template).
 -define(PORT, 8080).
 -define(OPTIONS, []).
+-define(TIMEOUT, 0).
 
 %% API
--export([listen/1, read/1, write/2, close/0]).
+-export([listen/1, read/1, write/2, close/1]).
 
 listen(ProtocolAdapter) ->
   {ok, ListenSocket} = gen_tcp:listen(?PORT, ?OPTIONS),
   {ok, Socket} = gen_tcp:accept(ListenSocket),
-  {fun() -> read(Socket) end, fun(Data) -> write(Socket, Data) end}.
+  {fun() -> read(Socket) end, fun(Packet) -> write(Socket, Packet) end, fun() -> close(Socket) end} ! ProtocolAdapter.
 
 read(Socket) ->
-  erlang:error(not_implemented).
+  gen_tcp:recv(Socket, 0, ?TIMEOUT).
 
-write(Socket, Data) ->
-  erlang:error(not_implemented).
+write(Socket, Packet) ->
+  gen_tcp:send(Socket, Packet).
 
-close() ->
-  erlang:error(not_implemented).
+close(Socket) ->
+  gen_tcp:close(Socket).

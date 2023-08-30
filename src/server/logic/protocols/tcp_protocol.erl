@@ -23,7 +23,12 @@ listen(ProtocolAdapter) ->
   {fun() -> read(Socket) end, fun(Packet) -> write(Socket, Packet) end, fun() -> close(Socket) end} ! ProtocolAdapter.
 
 read(Socket) ->
-  gen_tcp:recv(Socket, 0, ?TIMEOUT).
+  case gen_tcp:recv(Socket, 0, ?TIMEOUT) of
+    {ok, Packet} ->
+      Packet;
+    {error, Reason} ->
+      Reason
+  end.
 
 write(Socket, Packet) ->
   gen_tcp:send(Socket, Packet).

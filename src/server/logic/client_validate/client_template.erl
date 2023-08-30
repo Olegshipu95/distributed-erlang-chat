@@ -40,5 +40,6 @@ restart_child(Pid, WorkingThreads) ->
 
 loop(WorkingThreads) ->
   receive
+
     stop -> terminate(WorkingThreads)
   end.

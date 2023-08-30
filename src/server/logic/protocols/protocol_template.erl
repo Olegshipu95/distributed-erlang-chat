@@ -18,11 +18,11 @@
   {CallbackReceive :: func(), CallbackSend :: func()}.
 
 %% Read data from client
--callback read() ->
-  {ok, Packet :: term()}.
+-callback read(Socket) ->
+  {ok, Data :: term()}.
 
 %% Send data to client
--callback write(Packet :: term()) ->
+-callback write(Socket, Data :: term()) ->
   ok.
 
 %% Close connection with client

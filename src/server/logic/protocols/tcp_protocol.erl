@@ -14,7 +14,7 @@
 
 %% API
 -export([init/1]).
-%% это инициализация
+
 init(ProtocolAdapter) ->
   case gen_tcp:listen(?PORT, ?OPTIONS) of
     {ok, ListenSocket} ->
@@ -22,7 +22,7 @@ init(ProtocolAdapter) ->
     {error, Reason} ->
       {error, self(), {init, Reason}} ! ProtocolAdapter
   end.
-%% Это получение AcceptSocket'ов
+
 listen(ProtocolAdapter, ListenSocket) ->
   case gen_tcp:accept(ListenSocket) of
     {ok, Socket} ->

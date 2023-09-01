@@ -15,7 +15,7 @@
 
 %% Waiting for new connection and returns callbacks for communication with client
 -callback listen(ProtocolAdapter :: pid()) ->
-  {CallbackReceive :: func(), CallbackSend :: func(), CloseConnection :: func()}.
+  {CallbackReceive :: func(), CallbackSend :: func(), CloseConnection :: func() | {error, Reason :: term()}}.
 
 %% Read data from client
 -callback read(Socket) ->
@@ -27,4 +27,4 @@
 
 %% Close connection with client
 -callback close(Socket) ->
-  ok | {error, Reason :: term()}.
+  ok.

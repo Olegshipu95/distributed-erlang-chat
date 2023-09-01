@@ -1,26 +1,41 @@
 %%%-------------------------------------------------------------------
-%%% @author olegs
-%%% @copyright (C) 2023, <COMPANY>
+%%% @author ivan/oleg
+%%% @copyright (C) 2023, <Olevan>
 %%% @doc
-%%%
+%%%     This module provides connection through tcp protocol
 %%% @end
 %%% Created : 28. авг. 2023 12:39
 %%%-------------------------------------------------------------------
 -module(tcp_protocol).
--author("olegs").
 
--behavior(protocol_template).
 -define(PORT, 8080).
 -define(OPTIONS, []).
 -define(TIMEOUT, 0).
 
 %% API
--export([listen/1, read/1, write/2, close/1]).
-
-listen(ProtocolAdapter) ->
-  {ok, ListenSocket} = gen_tcp:listen(?PORT, ?OPTIONS),
-  {ok, Socket} = gen_tcp:accept(ListenSocket),
-  {fun() -> read(Socket) end, fun(Packet) -> write(Socket, Packet) end, fun() -> close(Socket) end} ! ProtocolAdapter.
+-export([init/1]).
+%% это инициализация
+init(ProtocolAdapter) ->
+  case gen_tcp:listen(?PORT, ?OPTIONS) of
+    {ok, ListenSocket} ->
+      ?MODULE:listen(ProtocolAdapter, ListenSocket);
+    {error, Reason} ->
+      {error, self(), {init, Reason}} ! ProtocolAdapter
+  end.
+%% Это получение AcceptSocket'ов
+listen(ProtocolAdapter, ListenSocket) ->
+  case gen_tcp:accept(ListenSocket) of
+    {ok, Socket} ->
+      {self(), {fun() -> ?MODULE:read(Socket) end,
+        fun(Packet) -> ?MODULE:write(Socket, Packet) end,
+        fun() -> ?MODULE:close(Socket) end}} ! ProtocolAdapter,
+      ?MODULE:listen(ProtocolAdapter, ListenSocket);
+    {error, closed} ->
+      {error, self(), {tcp_listener, closed}} ! ProtocolAdapter;
+    {error, _} ->
+      {error, self(), {tcp_listener, _}} ! ProtocolAdapter,
+      ?MODULE:listen(ProtocolAdapter, ListenSocket)
+  end.
 
 read(Socket) ->
   gen_tcp:recv(Socket, 0, ?TIMEOUT).

@@ -19,12 +19,12 @@
 
 %% Read data from client
 -callback read(Socket) ->
-  {ok, Packet :: term()} | {error, Reason}.
+  {ok, Packet :: term()} | {error, Reason :: term()}.
 
 %% Send data to client
 -callback write(Socket, Packet :: term()) ->
-  ok | {error, Reason}.
+  ok | {error, Reason :: term()}.
 
 %% Close connection with client
 -callback close(Socket) ->
-  ok.
+  ok | {error, Reason :: term()}.

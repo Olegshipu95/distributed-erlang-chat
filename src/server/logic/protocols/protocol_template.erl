@@ -9,5 +9,22 @@
 -module(protocol_template).
 -author("olegs").
 
+
 %% API
 -export([]).
+
+%% Waiting for new connection and returns callbacks for communication with client
+-callback listen(ProtocolAdapter :: pid()) ->
+  {CallbackReceive :: func(), CallbackSend :: func(), CloseConnection :: func()}.
+
+%% Read data from client
+-callback read(Socket) ->
+  {ok, Packet :: term()} | {error, Reason}.
+
+%% Send data to client
+-callback write(Socket, Packet :: term()) ->
+  ok | {error, Reason}.
+
+%% Close connection with client
+-callback close(Socket) ->
+  ok.

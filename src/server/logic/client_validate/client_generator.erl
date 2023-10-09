@@ -4,37 +4,58 @@
 %%% @doc
 %%%
 %%% @end
-%%% Created : 21. авг. 2023 19:18
+%%% Created : 21. авг. 2023 19:07
 %%%-------------------------------------------------------------------
 -module(client_generator).
 -author("olegs").
 
+-behaviour(supervisor).
+
 %% API
--export([]).
-%%todo Error processing
-init({Id, Role}, Threads) ->
-  WorkingThreads = generator([], Threads),
-  loop(WorkingThreads).
+-export([start_link/0]).
 
-generator(_, []) -> _;
-generator(WorkingThreads, [{Module, Args} | Rest]) ->
-  Pid = spawn_link(Module, Module:start(), Args),
-  [{Pid, Module} | generator(WorkingThreads, Rest)];
-generator(WorkingThreads, [Module | Rest]) ->
-  Pid = spawn_link(Module, Module:start(), []),
-  [{Pid, Module} | generator(WorkingThreads, Rest)].
+%% Supervisor callbacks
+-export([init/1]).
 
-terminate([]) -> ok;
-terminate([{Pid, Module} | Rest]) ->
-  Module:terminate(),
-  terminate(Rest).
+-define(SERVER, ?MODULE).
 
-restart_child(Pid, WorkingThreads) ->
-  {value, {Pid, {Module, Func, Args}}} = lists:keysearch(Pid, 1, WorkingThreads),
-  {ok, NewPid} = apply(Module,Func,Args),
-  [{NewPid, {Module,Func,Args}}|lists:keydelete(Pid,1,WorkingThreads)].
+%%%===================================================================
+%%% API functions
+%%%===================================================================
 
-loop(WorkingThreads) ->
-  receive
-    stop -> terminate(WorkingThreads)
-  end.
+%% @doc Starts the supervisor
+-spec(start_link() -> {ok, Pid :: pid()} | ignore | {error, Reason :: term()}).
+start_link() ->
+  supervisor:start_link({local, ?SERVER}, ?MODULE, []).
+
+%%%===================================================================
+%%% Supervisor callbacks
+%%%===================================================================
+
+%% @private
+%% @doc Whenever a supervisor is started using supervisor:start_link/[2,3],
+%% this function is called by the new process to find out about
+%% restart strategy, maximum restart frequency and child
+%% specifications.
+-spec(init(Args :: term()) ->
+  {ok, {SupFlags :: {RestartStrategy :: supervisor:strategy(),
+    MaxR :: non_neg_integer(), MaxT :: non_neg_integer()},
+    [ChildSpec :: supervisor:child_spec()]}}
+  | ignore | {error, Reason :: term()}).
+init([]) ->
+  MaxRestarts = 1000,
+  MaxSecondsBetweenRestarts = 3600,
+  SupFlags = #{strategy => simple_one_for_one,
+    intensity => MaxRestarts,
+    period => MaxSecondsBetweenRestarts},
+
+  AChild = #{id => client,
+    start => {client_generator, init, []},
+    restart => never,
+    type => worker},
+
+  {ok, {SupFlags, [AChild]}}.
+
+%%%===================================================================
+%%% Internal functions
+%%%===================================================================

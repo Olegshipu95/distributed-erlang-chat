@@ -1,12 +1,12 @@
 %%%-------------------------------------------------------------------
 %%% @author olegs
-%%% @copyright (C) 2023, <COMPANY>
+%%% @copyright (C) 2023
 %%% @doc
-%%%
+%%% Supervisor will create the rest of the hierarchy supervisors
 %%% @end
-%%% Created : 21. авг. 2023 19:07
+%%% Created : 17. авг. 2023 23:39
 %%%-------------------------------------------------------------------
--module(general_sup).
+-module(main).
 -author("olegs").
 
 -behaviour(supervisor).
@@ -45,14 +45,16 @@ start_link() ->
 init([]) ->
   MaxRestarts = 1000,
   MaxSecondsBetweenRestarts = 3600,
-  SupFlags = #{strategy => simple_one_for_one,
+  SupFlags = #{strategy => one_for_one,
     intensity => MaxRestarts,
     period => MaxSecondsBetweenRestarts},
 
-  AChild = #{id => client,
-    start => {client_generator, init, []},
-    restart => never,
-    type => worker},
+  AChild = #{id => protocol_adapter,
+    start => {protocol_adapter, start_link, []},
+    restart => permanent,
+    shutdown => 2000,
+    type => worker,
+    modules => [protocol_adapter]},
 
   {ok, {SupFlags, [AChild]}}.
 

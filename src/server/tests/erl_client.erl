@@ -4,9 +4,9 @@
 %%% @doc
 %%%
 %%% @end
-%%% Created : 17. авг. 2023 23:58
+%%% Created : 28. авг. 2023 13:13
 %%%-------------------------------------------------------------------
--module(chat_supervisor).
+-module(erl_client).
 -author("olegs").
 
 %% API

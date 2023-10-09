@@ -1,12 +1,12 @@
 %%%-------------------------------------------------------------------
 %%% @author olegs
-%%% @copyright (C) 2023
+%%% @copyright (C) 2023, <COMPANY>
 %%% @doc
-%%% Supervisor will create the rest of the hierarchy supervisors
+%%%
 %%% @end
-%%% Created : 17. авг. 2023 23:39
+%%% Created : 28. авг. 2023 13:10
 %%%-------------------------------------------------------------------
--module(distributed_chat).
+-module(protocol_adapter).
 -author("olegs").
 
 -behaviour(supervisor).
@@ -49,12 +49,12 @@ init([]) ->
     intensity => MaxRestarts,
     period => MaxSecondsBetweenRestarts},
 
-  AChild = #{id => 'AName',
-    start => {'AModule', start_link, []},
+  AChild = #{id => client_generator,
+    start => {client_generator, start_link, []},
     restart => permanent,
     shutdown => 2000,
     type => worker,
-    modules => ['AModule']},
+    modules => [client_generator]},
 
   {ok, {SupFlags, [AChild]}}.
 
